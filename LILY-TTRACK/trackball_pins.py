@@ -1,14 +1,12 @@
 from machine import Pin, SPI
 from time import sleep_ms
-p10 = Pin(10, Pin.IN, Pin.PULL_UP)
 # Try different pin configurations
 pins = {
-    'gs1': Pin(1, Pin.IN, Pin.PULL_DOWN),  # Try PULL_DOWN instead of PULL_UP
-    'gs2': Pin(2, Pin.IN, Pin.PULL_DOWN),
-    'gs3': Pin(3, Pin.IN, Pin.PULL_DOWN),
-    'gs4': p10,
+    'gs1': Pin(1, Pin.IN, Pin.PULL_DOWN),  # y down
+    'gs2': Pin(2, Pin.IN, Pin.PULL_DOWN),  # x right
+    'gs3': Pin(3, Pin.IN, Pin.PULL_DOWN),  # y up
+    'gs4': Pin(10, Pin.IN, Pin.PULL_DOWN), # x left
     'gsKey': Pin(0, Pin.IN, Pin.PULL_UP),
-    'gs48': Pin(48, Pin.IN, Pin.PULL_UP),
 }
 
 def print_pin_states():

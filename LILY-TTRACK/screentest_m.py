@@ -5,8 +5,9 @@ import framebuf
 
 from machine import mem32
 
-pinPWR = Pin(4, Pin.OUT)
-pinPWR.on()
+# This is needed for screen to not conflict with trackball.
+#pinPWR = Pin(4, Pin.OUT)
+#pinPWR.on()
 
 # Use it like this:
 
@@ -45,7 +46,7 @@ ROTATION_270 = 3
 current_rotation = ROTATION_0
 
 # Cursor properties
-CURSOR_SIZE = 3
+CURSOR_SIZE = 5
 CURSOR_COLOR = 0xFFFF  # White
 BG_COLOR = 0x0000  # Black
 
@@ -238,10 +239,14 @@ class Cursor:
 #    fill_rect(20, 20, DISPLAY_WIDTH - 40, DISPLAY_HEIGHT - 40, 0xFFE0)  # Yellow rectangle
 
 # Main loop
+
+
+import battery
+    
 def main():
     init_display()
     set_rotation(ROTATION_0)
-    tft_bl = Pin(10, Pin.IN, Pin.PULL_UP)
+    #tft_bl = Pin(10, Pin.IN, Pin.PULL_UP)
     force_bright()
     #tft_bl.value(1)
     status = read_display_status()
@@ -253,6 +258,10 @@ def main():
     power_mode = read_display_power_mode()
     print(f"Display Power Mode: {power_mode:08b}")
     
+    from trackball import Trackball
+    trackball = Trackball()
+    trackball.init(poll_interval_ms=10, aggregation_interval_ms=100)
+    
     print("rect filling")
     fill_rect(0, 50, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0x01E0)
     # Test the display by drawing some rectangles
@@ -263,45 +272,42 @@ def main():
     draw_text(10, 10, "Hello, World!", 0xFFFF)  # White text
     draw_text(10, 30, "LilyGo T-Track", 0xF800)  # Red text
     time.sleep(2)
-    print("outing rect")
-    fill_rect(0, 50, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0x07E0)  # Green background
-    # Rotate the display and draw more rectangles
-    cursor = Cursor(DISPLAY_WIDTH // 2, DISPLAY_HEIGHT // 2)
+#    print("outing rect")
+#    fill_rect(0, 50, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0x07E0)  # Green background
 
+
+    cursor = Cursor(DISPLAY_WIDTH // 2, DISPLAY_HEIGHT // 2)
+    
+    def on_move(delta):
+        print(f"Movement detected: {delta}")
+        cursor.erase()
+        cursor.move(cursor.x + delta[0]*2, cursor.y+delta[1]*2)
+        cursor.draw()
+    def on_btn(a):
+        draw_text(10, 50, battery.get_string(), 0xF8F0)
+        
+    trackball.on_move(on_move)
+    trackball.on_button(on_btn)
     # Clear screen
     #fill_rect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, BG_COLOR)
     print("entering loop")
     while True:
+        trackball.update()
+        time.sleep_ms(1)
+         # Red text
         #sleep_out()
         #print(tft_bl.value())
-        force_bright()
-        fill_rect(0, 50, 30, 30, 0x07E0)
-        print("Pin state:", tft_bl.value())
-        time.sleep(0.5)
+        #force_bright()
+        #fill_rect(0, 50, 30, 30, 0x07E0)
+        #print("Pin state:", tft_bl.value())
+
         #status = read_display_status()
         #print(f"Display Status: {status}")
-    while False:
-        # Erase the cursor from its last position
-        cursor.erase()
-
-        # Move the cursor (example: move in a square pattern)
-        if cursor.x < DISPLAY_WIDTH - CURSOR_SIZE and cursor.y == DISPLAY_HEIGHT // 2:
-            cursor.move(cursor.x + 1, cursor.y)
-        elif cursor.x == DISPLAY_WIDTH - CURSOR_SIZE and cursor.y < DISPLAY_HEIGHT - CURSOR_SIZE:
-            cursor.move(cursor.x, cursor.y + 1)
-        elif cursor.x > 0 and cursor.y == DISPLAY_HEIGHT - CURSOR_SIZE:
-            cursor.move(cursor.x - 1, cursor.y)
-        else:
-            cursor.move(cursor.x, cursor.y - 1)
-
-        # Draw the cursor at its new position
-        cursor.draw()
-
-        # Small delay to control the speed of movement
-        time.sleep(0.1)
 
 # Run the main loop
 main()
+
+
 
 
 
